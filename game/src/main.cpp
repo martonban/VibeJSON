@@ -1,6 +1,9 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include <iostream>
+#include <string>
+
 #include "imgui.h"
 #include "rlImGui.h"
 
@@ -30,8 +33,7 @@ int main(int argc, char* argv[])
 	SetTargetFPS(144);
 	rlImGuiSetup(true);
 
-	Texture image = LoadTexture("resources/parrots.png");
-
+	
 	// Main game loop
 	while (!WindowShouldClose())    // Detect window close button or ESC key
 	{
@@ -46,13 +48,20 @@ int main(int argc, char* argv[])
 		ImGui::ShowDemoWindow(&open);
 
 		open = true;
+		float f;
+
 		if (ImGui::Begin("Test Window", &open))
 		{
-			ImGui::TextUnformatted(ICON_FA_JEDI);
 
-			rlImGuiImage(&image);
+			ImGui::Text("Hello, world %d", 123);
+			if (ImGui::Button("Save")) {
+				std::cout << "pénisz";
+			}
+			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		}
 		ImGui::End();
+
+		std::cout << std::endl << f << std::endl;
 
 		// end ImGui Content
 		rlImGuiEnd();
@@ -65,7 +74,6 @@ int main(int argc, char* argv[])
 	// De-Initialization
 	//--------------------------------------------------------------------------------------   
     rlImGuiShutdown();
-	UnloadTexture(image);
 	CloseWindow();        // Close window and OpenGL context
 	//--------------------------------------------------------------------------------------
 
