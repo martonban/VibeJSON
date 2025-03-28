@@ -7,7 +7,6 @@
 #include "imgui.h"
 #include "rlImGui.h"
 
-
 /*-------------------------------------------------------------------------------------------------------------------------------
 *                                          	NebulaPax - SpaceOS
 *                                      	Copyright (c) Márton Bán 2025
@@ -16,6 +15,14 @@
 *-------------------------------------------------------------------------------------------------------------------------------
 */
 
+// DPI scaling functions
+float ScaleToDPIF(float value) {
+    return GetWindowScaleDPI().x * value;
+}
+
+int ScaleToDPII(int value) {
+    return int(GetWindowScaleDPI().x * value);
+}
 
 void rendering(Camera3D& camera, RenderTexture2D& target) {
 	BeginTextureMode(target);
