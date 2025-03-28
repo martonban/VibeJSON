@@ -8,23 +8,27 @@
 #include "rlImGui.h"
 
 
-// DPI scaling functions
-float ScaleToDPIF(float value)
-{
-    return GetWindowScaleDPI().x * value;
+/*-------------------------------------------------------------------------------------------------------------------------------
+*                                          	NebulaPax - SpaceOS
+*                                      	Copyright (c) Márton Bán 2025
+*	SpaceOS is powered by the NebulaPax engine. This engine evolves iteratively, with each new game representing a new
+*	version of the engine, continuously improving and expanding its capabilities.
+*-------------------------------------------------------------------------------------------------------------------------------
+*/
+
+
+void rendering(Camera3D& camera, RenderTexture2D& target) {
+	BeginTextureMode(target);
+	ClearBackground(RAYWHITE);
+	BeginMode3D(camera);
+	DrawCube(Vector3{0.f,0.f,0.f}, 1.0f, 1.0f, 1.0f, RED);
+  	UpdateCamera(&camera, CAMERA_THIRD_PERSON); 
+	EndMode3D();
+	EndTextureMode();
 }
 
-int ScaleToDPII(int value)
-{
-    return int(GetWindowScaleDPI().x * value);
-}
 
-
-
-int main(int argc, char* argv[])
-{
-	// Initialization
-	//--------------------------------------------------------------------------------------
+int main(int argc, char* argv[]) {
 	int screenWidth = 1280;
 	int screenHeight = 800;
 
@@ -33,13 +37,23 @@ int main(int argc, char* argv[])
 	SetTargetFPS(144);
 	rlImGuiSetup(true);
 
+	Camera3D camera = { 0 };
+	camera.position = Vector3{ 4.0f, 4.0f, 4.0f };
+	camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
+	camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
+	camera.fovy = 45.0f;                         
+	camera.projection = CAMERA_PERSPECTIVE;
+	EndTextureMode();
+    RenderTexture2D frame_renderer = LoadRenderTexture(screenWidth, screenHeight);
+	float f = 0.f;
 	
-	// Main game loop
-	while (!WindowShouldClose())    // Detect window close button or ESC key
-	{
-		BeginDrawing();
-		ClearBackground(DARKGRAY);
 
+	while (!WindowShouldClose()) {
+		rendering(camera, frame_renderer);
+
+		BeginDrawing();
+        DrawTextureRec(frame_renderer.texture, Rectangle{0, 0, (float)frame_renderer.texture.width, -(float)frame_renderer.texture.height}, Vector2{0, 0}, WHITE);
+		
 		// start ImGui Conent
 		rlImGuiBegin();
 
@@ -48,11 +62,10 @@ int main(int argc, char* argv[])
 		ImGui::ShowDemoWindow(&open);
 
 		open = true;
-		float f;
+
 
 		if (ImGui::Begin("Test Window", &open))
 		{
-
 			ImGui::Text("Hello, world %d", 123);
 			if (ImGui::Button("Save")) {
 				std::cout << "pénisz";
@@ -60,22 +73,16 @@ int main(int argc, char* argv[])
 			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		}
 		ImGui::End();
-
 		std::cout << std::endl << f << std::endl;
 
 		// end ImGui Content
 		rlImGuiEnd();
-
 		EndDrawing();
-		//----------------------------------------------------------------------------------
 	}
+	UnloadRenderTexture(frame_renderer);
 	rlImGuiShutdown();
-
-	// De-Initialization
-	//--------------------------------------------------------------------------------------   
+ 
     rlImGuiShutdown();
-	CloseWindow();        // Close window and OpenGL context
-	//--------------------------------------------------------------------------------------
-
+	CloseWindow();
 	return 0;
 }
