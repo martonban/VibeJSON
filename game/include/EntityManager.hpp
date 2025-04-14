@@ -48,7 +48,6 @@ private:
     std::queue<Entity> availableIDs{};
     std::array<Signature, MAX_ENTITIES> signatures{};
     uint32_t livingEntityCount{};
-
 };
 
 #endif
