@@ -1,11 +1,10 @@
-#include <iostream>
-#include <string>
-
 #include "raylib.h"
 #include "raymath.h"
 
 #include "imgui.h"
 #include "rlImGui.h"
+
+#include <iostream>
 
 
 //-------------------------------------------------------------------------------------------------------------------------------*                                          	
