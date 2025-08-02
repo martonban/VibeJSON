@@ -72,6 +72,11 @@ int main(int argc, char* argv[]) {
 	
 
 	while (!WindowShouldClose()) {
+		// Check for Shift+A key combination
+		if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_A)) {
+			showAddMenu = !showAddMenu;
+		}
+		
 		BeginDrawing();
 		rendering(camera, frame_renderer);
         DrawTextureRec(frame_renderer.texture, Rectangle{0, 0, (float)frame_renderer.texture.width, -(float)frame_renderer.texture.height}, Vector2{0, 0}, WHITE);
@@ -133,6 +138,33 @@ int main(int argc, char* argv[]) {
 			
 		}
 		ImGui::End();
+
+		// Add Menu - appears when Shift+A is pressed
+		if (showAddMenu) {
+			ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2(200, 150), ImGuiCond_FirstUseEver);
+			
+			if (ImGui::Begin("Add Object", &showAddMenu, ImGuiWindowFlags_NoResize)) {
+				ImGui::Text("Select object to add:");
+				ImGui::Separator();
+				
+				if (ImGui::Button("Kocka", ImVec2(-1, 30))) {
+					CreateCube();
+					showAddMenu = false; // Close menu after selection
+				}
+				
+				if (ImGui::Button("Gömb", ImVec2(-1, 30))) {
+					CreateSphere();
+					showAddMenu = false; // Close menu after selection
+				}
+				
+				if (ImGui::Button("Test Modell", ImVec2(-1, 30))) {
+					CreateTestModel();
+					showAddMenu = false; // Close menu after selection
+				}
+			}
+			ImGui::End();
+		}
 
 		// end ImGui Content
 		rlImGuiEnd();
