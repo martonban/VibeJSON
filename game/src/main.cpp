@@ -32,6 +32,25 @@ int ScaleToDPII(int value) {
 void rendering(Camera3D& camera, RenderTexture2D& target);
 Cube cube = { Vector3{0.0f, 0.0f, 0.0f}, 1.0f, 1.0f};
 
+// Global variable for the add menu
+bool showAddMenu = false;
+
+// Dummy functions for object creation
+void CreateCube() {
+    std::cout << "Creating Cube..." << std::endl;
+    // TODO: Implement cube creation
+}
+
+void CreateSphere() {
+    std::cout << "Creating Sphere..." << std::endl;
+    // TODO: Implement sphere creation
+}
+
+void CreateTestModel() {
+    std::cout << "Creating Test Model..." << std::endl;
+    // TODO: Implement test model creation
+}
+
 int main(int argc, char* argv[]) {
 	int SCREEN_WIDTH = 1280;
 	int SCREEN_HEIGHT = 800;
@@ -112,14 +131,12 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		}
 		ImGui::End();
 
 		// end ImGui Content
 		rlImGuiEnd();
 		EndDrawing();
-		std::cout << GetFPS() << std::endl;
 	}
 	UnloadRenderTexture(frame_renderer);
 	rlImGuiShutdown();
