@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "raylib.h"
 #include "raymath.h"
@@ -66,9 +67,51 @@ int main(int argc, char* argv[]) {
 		if (ImGui::Begin("Test Window", &open))
 		{
 			ImGui::Text("Hello, world %d", 123);
-			if (ImGui::Button("Save")) {
-				std::cout << "Test";
+			
+			// Cube position controls
+			Vector3 pos = cube.GetPosition();
+			float position[3] = {pos.x, pos.y, pos.z};
+			if (ImGui::SliderFloat3("Cube Position", position, -10.0f, 10.0f)) {
+				cube = Cube(Vector3{position[0], position[1], position[2]}, cube.GetWidth(), cube.GetHeight());
 			}
+			
+			// Cube dimension controls
+			float width = cube.GetWidth();
+			float height = cube.GetHeight();
+			bool changed = false;
+			if (ImGui::SliderFloat("Width", &width, 0.1f, 5.0f)) changed = true;
+			if (ImGui::SliderFloat("Height", &height, 0.1f, 5.0f)) changed = true;
+			
+			if (changed) {
+				cube = Cube(cube.GetPosition(), width, height);
+			}
+			
+			ImGui::Separator();
+			
+			// Serialization controls
+			if (ImGui::Button("Save Cube to JSON")) {
+				nlohmann::json cubeJson = cube.Serialize();
+				std::ofstream file("cube_save.json");
+				file << cubeJson.dump(4);
+				file.close();
+				std::cout << "Cube saved to cube_save.json" << std::endl;
+			}
+			
+			ImGui::SameLine();
+			
+			if (ImGui::Button("Load Cube from JSON")) {
+				std::ifstream file("cube_save.json");
+				if (file.is_open()) {
+					nlohmann::json cubeJson;
+					file >> cubeJson;
+					file.close();
+					cube = Cube::FromJson(cubeJson);
+					std::cout << "Cube loaded from cube_save.json" << std::endl;
+				} else {
+					std::cout << "Could not open cube_save.json" << std::endl;
+				}
+			}
+			
 			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		}
 		ImGui::End();
