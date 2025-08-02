@@ -1,10 +1,14 @@
+#include <iostream>
+
 #include "raylib.h"
 #include "raymath.h"
 
 #include "imgui.h"
 #include "rlImGui.h"
 
-#include <iostream>
+#include "Cube.hpp"
+
+
 
 
 //-------------------------------------------------------------------------------------------------------------------------------*                                          	
@@ -24,16 +28,8 @@ int ScaleToDPII(int value) {
     return int(GetWindowScaleDPI().x * value);
 }
 
-void rendering(Camera3D& camera, RenderTexture2D& target) {
-	BeginTextureMode(target);
-	ClearBackground(RAYWHITE);
-	BeginMode3D(camera);
-	DrawCube(Vector3{0.f,0.f,0.f}, 1.0f, 1.0f, 1.0f, RED);
-  	UpdateCamera(&camera, CAMERA_THIRD_PERSON); 
-	EndMode3D();
-	EndTextureMode();
-}
-
+void rendering(Camera3D& camera, RenderTexture2D& target);
+Cube cube = { Vector3{0.0f, 0.0f, 0.0f}, 1.0f, 1.0f};
 
 int main(int argc, char* argv[]) {
 	int SCREEN_WIDTH = 1280;
@@ -65,9 +61,6 @@ int main(int argc, char* argv[]) {
 
 		// show ImGui Content
 		bool open = true;
-		ImGui::ShowDemoWindow(&open);
-
-		open = true;
 
 
 		if (ImGui::Begin("Test Window", &open))
@@ -91,4 +84,13 @@ int main(int argc, char* argv[]) {
     rlImGuiShutdown();
 	CloseWindow();
 	return 0;
+}
+
+void rendering(Camera3D& camera, RenderTexture2D& target) {
+	BeginTextureMode(target);
+	ClearBackground(RAYWHITE);
+	BeginMode3D(camera);
+	cube.Render();
+	EndMode3D();
+	EndTextureMode();
 }
