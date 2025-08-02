@@ -1,2 +1,2 @@
-# SpaceOS
-A simple 3D game in C++ practising imGUI
+# VibeJSON
+A simple ImGui and a nlohmann::json demo application
