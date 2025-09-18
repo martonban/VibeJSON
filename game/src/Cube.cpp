@@ -1,7 +1,24 @@
 #include "Cube.hpp"
 
 void Cube::Render() {
-    DrawCube(mPos, mWidth, mHeight, 1.0f, RED);
+    // Draw the cube itself
+    Color cubeColor = mSelected ? ORANGE : RED;
+    DrawCube(mPos, mWidth, mHeight, 1.0f, cubeColor);
+    
+    // Draw wireframe to make it easier to see
+    DrawCubeWires(mPos, mWidth, mHeight, 1.0f, BLACK);
+    
+    // If selected, render the gizmos
+    if (mSelected) {
+        mGizmo.Render(mPos);
+    }
+}
+
+bool Cube::Update(Camera3D& camera) {
+    if (!mSelected) return false;
+    
+    // Handle gizmo interactions
+    return mGizmo.HandleInteraction(camera, mPos);
 }
 
 nlohmann::json Cube::Serialize() const {

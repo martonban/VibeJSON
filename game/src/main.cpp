@@ -32,8 +32,9 @@ int ScaleToDPII(int value) {
 void rendering(Camera3D& camera, RenderTexture2D& target);
 Cube cube = { Vector3{0.0f, 0.0f, 0.0f}, 1.0f, 1.0f};
 
-// Global variable for the add menu
+// Global variables for the application state
 bool showAddMenu = false;
+bool editMode = true; // Start with edit mode enabled
 
 // Dummy functions for object creation
 void CreateCube() {
@@ -77,6 +78,78 @@ int main(int argc, char* argv[]) {
 			showAddMenu = !showAddMenu;
 		}
 		
+		// Camera rotation with middle mouse button
+		if (IsMouseButtonDown(MOUSE_MIDDLE_BUTTON) && !ImGui::GetIO().WantCaptureMouse) {
+			Vector2 mouseDelta = GetMouseDelta();
+			
+			// Rotate the camera around the target
+			float cameraRotSpeed = 0.003f;
+			
+			// Calculate camera position in spherical coordinates
+			Vector3 toCamera = Vector3Subtract(camera.position, camera.target);
+			float distance = Vector3Length(toCamera);
+			float theta = atan2f(toCamera.z, toCamera.x);
+			float phi = acosf(toCamera.y / distance);
+			
+			// Update theta and phi based on mouse movement
+			theta -= mouseDelta.x * cameraRotSpeed;
+			phi -= mouseDelta.y * cameraRotSpeed;
+			
+			// Clamp phi to avoid camera flipping
+			phi = Clamp(phi, 0.1f, PI - 0.1f);
+			
+			// Convert back to cartesian coordinates
+			camera.position.x = camera.target.x + distance * cosf(theta) * sinf(phi);
+			camera.position.y = camera.target.y + distance * cosf(phi);
+			camera.position.z = camera.target.z + distance * sinf(theta) * sinf(phi);
+		}
+		
+		// Camera zoom with mouse wheel
+		float mouseWheel = GetMouseWheelMove();
+		if (mouseWheel != 0 && !ImGui::GetIO().WantCaptureMouse) {
+			Vector3 toCamera = Vector3Subtract(camera.position, camera.target);
+			float distance = Vector3Length(toCamera);
+			
+			// Zoom in/out
+			float zoomSpeed = 0.2f;
+			distance -= mouseWheel * zoomSpeed * distance;
+			distance = Clamp(distance, 1.0f, 50.0f); // Prevent zooming too close or too far
+			
+			// Normalize the direction vector
+			toCamera = Vector3Scale(Vector3Normalize(toCamera), distance);
+			camera.position = Vector3Add(camera.target, toCamera);
+		}
+		
+		// Handle selection and deselection only when not interacting with gizmos
+		bool handledByGizmo = false;
+		if (editMode && cube.IsSelected()) {
+			handledByGizmo = cube.Update(camera);
+		}
+		
+		// Check for clicking on the cube to select it (only if not handled by gizmo)
+		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !ImGui::GetIO().WantCaptureMouse && !handledByGizmo) {
+			// Get the ray from the mouse position
+			Ray ray = GetMouseRay(GetMousePosition(), camera);
+			
+			// Create a bounding box for the cube
+			BoundingBox cubeBox = {
+				Vector3Subtract(cube.GetPosition(), {cube.GetWidth()/2, cube.GetHeight()/2, 0.5f}),
+				Vector3Add(cube.GetPosition(), {cube.GetWidth()/2, cube.GetHeight()/2, 0.5f})
+			};
+			
+			// Check for collision with the cube using GetRayCollisionBox
+			RayCollision collision = GetRayCollisionBox(ray, cubeBox);
+			
+			// If collision occurred
+			if (collision.hit) {
+				// Select the cube
+				cube.SetSelected(true);
+			} else {
+				// If clicking outside, deselect the cube
+				cube.SetSelected(false);
+			}
+		}
+		
 		BeginDrawing();
 		rendering(camera, frame_renderer);
         DrawTextureRec(frame_renderer.texture, Rectangle{0, 0, (float)frame_renderer.texture.width, -(float)frame_renderer.texture.height}, Vector2{0, 0}, WHITE);
@@ -92,11 +165,32 @@ int main(int argc, char* argv[]) {
 		{
 			ImGui::Text("Hello, world %d", 123);
 			
+			// Help box for controls
+			if (ImGui::CollapsingHeader("Camera Controls Help", ImGuiTreeNodeFlags_DefaultOpen)) {
+				ImGui::BulletText("Middle Mouse Button: Rotate Camera");
+				ImGui::BulletText("Mouse Wheel: Zoom In/Out");
+				ImGui::BulletText("Left Click: Select/Deselect Cube");
+				ImGui::BulletText("Drag Gizmo Arrows: Move Cube");
+				ImGui::Separator();
+			}
+			
+			// Edit mode toggle
+			if (ImGui::Checkbox("Edit Mode (Gizmos)", &editMode)) {
+				// If turning off edit mode, deselect the cube
+				if (!editMode) {
+					cube.SetSelected(false);
+				}
+			}
+			
+			// Selection status
+			ImGui::Text("Cube Selected: %s", cube.IsSelected() ? "Yes" : "No");
+			
 			// Cube position controls
 			Vector3 pos = cube.GetPosition();
 			float position[3] = {pos.x, pos.y, pos.z};
 			if (ImGui::SliderFloat3("Cube Position", position, -10.0f, 10.0f)) {
-				cube = Cube(Vector3{position[0], position[1], position[2]}, cube.GetWidth(), cube.GetHeight());
+				// We can now use the setter instead of creating a new cube
+				cube.SetPosition({position[0], position[1], position[2]});
 			}
 			
 			// Cube dimension controls
@@ -108,6 +202,8 @@ int main(int argc, char* argv[]) {
 			
 			if (changed) {
 				cube = Cube(cube.GetPosition(), width, height);
+				// Maintain selection state when recreating the cube
+				cube.SetSelected(true);
 			}
 			
 			ImGui::Separator();
@@ -182,7 +278,13 @@ void rendering(Camera3D& camera, RenderTexture2D& target) {
 	BeginTextureMode(target);
 	ClearBackground(RAYWHITE);
 	BeginMode3D(camera);
+	
+	// Draw the grid for better spatial awareness
+	DrawGrid(10, 1.0f);
+	
+	// Render cube and its gizmos if selected
 	cube.Render();
+	
 	EndMode3D();
 	EndTextureMode();
 }
